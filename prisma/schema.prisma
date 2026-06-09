@@ -1,0 +1,68 @@
+// Schema Prisma — Sistem Monitoring Kesehatan Real-Time
+// Pulse Heart Sensor + Arduino + Next.js
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum JenisKelamin {
+  LAKI_LAKI
+  PEREMPUAN
+}
+
+enum StatusSesi {
+  BERLANGSUNG
+  SELESAI
+}
+
+// ============================================
+// MODELS
+// ============================================
+
+model Pasien {
+  id           Int          @id @default(autoincrement())
+  nama         String
+  umur         Int
+  jenisKelamin JenisKelamin @map("jenis_kelamin")
+  domisili     String
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  sesi         Sesi[]
+
+  @@map("pasien")
+}
+
+model Sesi {
+  id       Int        @id @default(autoincrement())
+  pasienId Int        @map("pasien_id")
+  mulai    DateTime   @default(now())
+  selesai  DateTime?
+  status   StatusSesi @default(BERLANGSUNG)
+  catatan  String?
+
+  pasien    Pasien      @relation(fields: [pasienId], references: [id])
+  heartRate HeartRate[]
+
+  @@map("sesi")
+}
+
+model HeartRate {
+  id        Int      @id @default(autoincrement())
+  sesiId    Int      @map("sesi_id")
+  bpm       Int
+  timestamp DateTime @default(now())
+
+  sesi Sesi @relation(fields: [sesiId], references: [id])
+
+  @@map("heart_rate")
+}
